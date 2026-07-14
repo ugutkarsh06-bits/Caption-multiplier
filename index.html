@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multiplier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #EDEFF5;
+    --surface: #FFFFFF;
+    --ink: #14192B;
+    --muted: #5B6178;
+    --hairline: #D8DCE8;
+    --accent: #E8A93A;
+    --blue: #2F6FED;
+    --green: #1F9E6D;
+    --pink: #D34C8C;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 24px 80px;}
+  header.top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:8px;flex-wrap:wrap;}
+  .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.02em;display:flex;align-items:center;gap:10px;}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 0 3px rgba(232,169,58,0.25);}
+  .tagline{color:var(--muted);font-size:14px;font-family:'IBM Plex Mono',monospace;}
+
+  /* Lock screen */
+  .lock{
+    max-width:460px;
+    margin:80px auto;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:var(--radius);
+    padding:32px;
+    text-align:center;
+  }
+  .lock h2{font-family:'Space Grotesk',sans-serif;margin:0 0 8px;font-size:20px;}
+  .lock p{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 20px;}
+  .lock input{
+    width:100%;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    padding:12px 14px;
+    border:1px solid var(--hairline);
+    border-radius:10px;
+    background:var(--bg);
+    margin-bottom:12px;
+  }
+  .lock button{
+    width:100%;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    padding:12px 22px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .lock button:disabled{opacity:0.5;cursor:not-allowed;}
+  .lock .buy{
+    display:inline-block;
+    margin-top:16px;
+    font-size:13px;
+    color:var(--blue);
+    text-decoration:none;
+  }
+  .lock .err{color:#8A2A2A;font-size:13px;margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+
+  .app{display:none;}
+  .app.visible{display:block;}
+
+  .signal{margin:28px 0 8px;height:150px;position:relative;}
+  .signal svg{width:100%;height:100%;display:block;}
+  .signal-label{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+  .pulse{opacity:0;}
+  .pulse.active{animation: travel 1.1s ease-in-out infinite;}
+  @keyframes travel{0%{opacity:0;stroke-dashoffset:220;}12%{opacity:1;}85%{opacity:1;}100%{opacity:0;stroke-dashoffset:0;}}
+
+  .panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);padding:22px;margin-top:18px;}
+  label.field-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;}
+  textarea, input[type=text]{width:100%;font-family:'Inter',sans-serif;font-size:14.5px;color:var(--ink);background:var(--bg);border:1px solid var(--hairline);border-radius:10px;padding:12px 14px;resize:vertical;}
+  textarea{min-height:170px;line-height:1.5;}
+  .row{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;}
+  .row > div{flex:1;min-width:220px;}
+  .actions{display:flex;align-items:center;justify-content:space-between;margin-top:18px;flex-wrap:wrap;gap:12px;}
+  .count{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  button.primary{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;background:var(--ink);color:#fff;border:none;padding:12px 22px;border-radius:10px;cursor:pointer;transition:transform 0.08s ease;}
+  button.primary:hover{transform:translateY(-1px);}
+  button.primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .error{margin-top:14px;padding:12px 14px;border-radius:10px;background:#FBE9E9;color:#8A2A2A;font-size:13.5px;font-family:'IBM Plex Mono',monospace;}
+
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;}
+  @media (max-width:720px){.results{grid-template-columns:1fr;}}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-top-width:4px;border-radius:var(--radius);padding:18px;}
+  .card h3{margin:0 0 4px;font-family:'Space Grotesk',sans-serif;font-size:15px;}
+  .card .chan{font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:12px;}
+  .card .body{font-size:14px;line-height:1.55;white-space:pre-wrap;}
+  .card .body .tweet{padding:8px 0;border-bottom:1px dashed var(--hairline);}
+  .card .body .tweet:last-child{border-bottom:none;}
+  .card .copy{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:none;border:1px solid var(--hairline);padding:6px 10px;border-radius:8px;cursor:pointer;color:var(--muted);}
+  .card .copy:hover{color:var(--ink);border-color:var(--ink);}
+  .card.thread{border-top-color:var(--blue);}
+  .card.linkedin{border-top-color:var(--green);}
+  .card.instagram{border-top-color:var(--pink);}
+  .card.newsletter{border-top-color:var(--accent);}
+</style>
+</head>
+<body>
+
+<div class="lock" id="lockScreen">
+  <h2>Unlock Multiplier</h2>
+  <p>Enter the license key you received after purchase. Don't have one yet?</p>
+  <input type="text" id="licenseInput" placeholder="Paste your license key">
+  <button id="unlockBtn">Unlock</button>
+  <div class="err" id="lockErr"></div>
+  <a class="buy" id="buyLink" href="#" target="_blank">Get a license →</a>
+</div>
+
+<div class="wrap app" id="appRoot">
+  <header class="top">
+    <div>
+      <div class="brand"><span class="dot"></span>Multiplier</div>
+      <div class="tagline">one source → four channels, ready to post</div>
+    </div>
+  </header>
+
+  <div class="signal">
+    <svg viewBox="0 0 900 150" preserveAspectRatio="xMidYMid meet">
+      <line x1="20" y1="75" x2="180" y2="75" stroke="var(--hairline)" stroke-width="2"/>
+      <circle cx="180" cy="75" r="7" fill="var(--ink)"/>
+      <text x="20" y="60" class="signal-label">source</text>
+      <path d="M180,75 C300,75 300,20 460,20" fill="none" stroke="var(--blue)" stroke-width="2" stroke-dasharray="6 4"/>
+      <path d="M180,75 C300,75 300,55 460,55" fill="none" stroke="var(--green)" stroke-width="2" stroke-dasharray="6 4"/>
+      <path d="M180,75 C300,75 300,95 460,95" fill="none" stroke="var(--pink)" stroke-width="2" stroke-dasharray="6 4"/>
+      <path d="M180,75 C300,75 300,130 460,130" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 4"/>
+      <path id="pulse1" class="pulse" d="M180,75 C300,75 300,20 460,20" fill="none" stroke="var(--blue)" stroke-width="3" stroke-dasharray="14 200"/>
+      <path id="pulse2" class="pulse" d="M180,75 C300,75 300,55 460,55" fill="none" stroke="var(--green)" stroke-width="3" stroke-dasharray="14 200"/>
+      <path id="pulse3" class="pulse" d="M180,75 C300,75 300,95 460,95" fill="none" stroke="var(--pink)" stroke-width="3" stroke-dasharray="14 200"/>
+      <path id="pulse4" class="pulse" d="M180,75 C300,75 300,130 460,130" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="14 200"/>
+      <circle cx="460" cy="20" r="5" fill="var(--blue)"/>
+      <circle cx="460" cy="55" r="5" fill="var(--green)"/>
+      <circle cx="460" cy="95" r="5" fill="var(--pink)"/>
+      <circle cx="460" cy="130" r="5" fill="var(--accent)"/>
+      <text x="475" y="24" class="signal-label">thread</text>
+      <text x="475" y="59" class="signal-label">linkedin</text>
+      <text x="475" y="99" class="signal-label">instagram</text>
+      <text x="475" y="134" class="signal-label">newsletter</text>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <label class="field-label">Paste your source content</label>
+    <textarea id="source" placeholder="Drop in a blog post, video transcript, podcast show notes, or a long thought you already wrote out..."></textarea>
+    <div class="row">
+      <div>
+        <label class="field-label">Audience / niche (optional)</label>
+        <input type="text" id="context" placeholder="e.g. indie SaaS founders, home cooks, weightlifters">
+      </div>
+    </div>
+    <div class="actions">
+      <span class="count" id="charCount">0 characters</span>
+      <button class="primary" id="generateBtn">Multiply this →</button>
+    </div>
+    <div id="errorBox"></div>
+  </div>
+
+  <div id="resultsArea"></div>
+</div>
+
+<script>
+// ---- CONFIG: set your Gumroad product page URL here ----
+const BUY_LINK = 'https://gumroad.com/l/YOUR_PRODUCT_HERE';
+document.getElementById('buyLink').href = BUY_LINK;
+
+const LICENSE_STORAGE_KEY = 'multiplier_license_key';
+
+const lockScreen = document.getElementById('lockScreen');
+const appRoot = document.getElementById('appRoot');
+const unlockBtn = document.getElementById('unlockBtn');
+const licenseInput = document.getElementById('licenseInput');
+const lockErr = document.getElementById('lockErr');
+
+function showApp(){
+  lockScreen.style.display = 'none';
+  appRoot.classList.add('visible');
+}
+
+async function tryUnlock(key){
+  lockErr.textContent = '';
+  unlockBtn.disabled = true;
+  unlockBtn.textContent = 'Checking...';
+  try{
+    const res = await fetch('/api/verify-license', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ licenseKey: key })
+    });
+    const data = await res.json();
+    if(data.valid){
+      localStorage.setItem(LICENSE_STORAGE_KEY, key);
+      showApp();
+    }else{
+      lockErr.textContent = 'That license key did not check out. Double-check it and try again.';
+    }
+  }catch(e){
+    lockErr.textContent = 'Could not verify right now. Try again in a moment.';
+  }finally{
+    unlockBtn.disabled = false;
+    unlockBtn.textContent = 'Unlock';
+  }
+}
+
+unlockBtn.addEventListener('click', () => {
+  const key = licenseInput.value.trim();
+  if(!key){ lockErr.textContent = 'Paste your license key first.'; return; }
+  tryUnlock(key);
+});
+
+// auto-unlock if we already verified this key before
+const savedKey = localStorage.getItem(LICENSE_STORAGE_KEY);
+if(savedKey){
+  tryUnlock(savedKey);
+}
+
+// ---- Main tool logic ----
+const sourceEl = document.getElementById('source');
+const contextEl = document.getElementById('context');
+const charCount = document.getElementById('charCount');
+const generateBtn = document.getElementById('generateBtn');
+const errorBox = document.getElementById('errorBox');
+const resultsArea = document.getElementById('resultsArea');
+
+sourceEl.addEventListener('input', () => {
+  charCount.textContent = sourceEl.value.length + ' characters';
+});
+
+function setPulsing(active){
+  ['pulse1','pulse2','pulse3','pulse4'].forEach(id => {
+    const el = document.getElementById(id);
+    if(active) el.classList.add('active'); else el.classList.remove('active');
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderResults(outputs){
+  resultsArea.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'results';
+
+  const cards = [
+    {key:'thread', title:'X / Twitter thread', cls:'thread', render:(v)=> Array.isArray(v) ? v.map(t=>`<div class="tweet">${escapeHtml(t)}</div>`).join('') : escapeHtml(v||''), plain:(v)=> Array.isArray(v) ? v.join('\n\n') : (v||'')},
+    {key:'linkedin', title:'LinkedIn post', cls:'linkedin', render:(v)=>escapeHtml(v||''), plain:(v)=>v||''},
+    {key:'instagram', title:'Instagram caption', cls:'instagram', render:(v)=>escapeHtml(v||''), plain:(v)=>v||''},
+    {key:'newsletter', title:'Newsletter blurb', cls:'newsletter', render:(v)=>escapeHtml(v||''), plain:(v)=>v||''},
+  ];
+
+  cards.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'card ' + c.cls;
+    const value = outputs[c.key];
+    card.innerHTML = `<h3>${c.title}</h3><div class="chan">ready to paste</div><div class="body">${c.render(value)}</div><button class="copy">Copy</button>`;
+    card.querySelector('.copy').addEventListener('click', (e) => {
+      navigator.clipboard.writeText(c.plain(value)).then(() => {
+        e.target.textContent = 'Copied';
+        setTimeout(() => e.target.textContent = 'Copy', 1400);
+      });
+    });
+    grid.appendChild(card);
+  });
+
+  resultsArea.appendChild(grid);
+}
+
+generateBtn.addEventListener('click', async () => {
+  const source = sourceEl.value.trim();
+  const context = contextEl.value.trim();
+  errorBox.innerHTML = '';
+
+  if(source.length < 40){
+    errorBox.innerHTML = '<div class="error">Paste a bit more source content first.</div>';
+    return;
+  }
+
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Multiplying...';
+  setPulsing(true);
+
+  try{
+    const response = await fetch('/api/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ source, context })
+    });
+    const data = await response.json();
+    if(!response.ok){
+      throw new Error(data.error || 'Request failed.');
+    }
+    renderResults(data.outputs);
+  }catch(err){
+    errorBox.innerHTML = `<div class="error">Something went wrong: ${escapeHtml(err.message)}. Try again.</div>`;
+  }finally{
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Multiply this →';
+    setPulsing(false);
+  }
+});
+</script>
+</body>
+</html>
